@@ -3,6 +3,10 @@
     <color name="white">#FFFFFF</color>
     <string name="facebook_app_id">306641599811296</string>
     <string name="age_prompt">나이</string>
+    <string name="city_prompt">지역</string>
+    <string name="blood_prompt">혈액형</string>
+    <string name="religion_prompt">종교</string>
+    <string name="drink_prompt">음주</string>
 
     <string-array name="age">
         <item>20</item>
@@ -13,6 +17,43 @@
         <item>25</item>
         <item>26</item>
 
+    </string-array>
 
+    <string-array name="city">
+        <item>서울</item>
+        <item>부산</item>
+        <item>인천</item>
+        <item>광주</item>
+        <item>울산</item>
+        <item>경북</item>
+        <item>경기</item>
+        <item>강원</item>
+        <item>경남</item>
+        <item>대전</item>
+        <item>전북</item>
+        <item>전남</item>
+        <item>충남</item>
+        <item>충북</item>
+
+
+    </string-array>
+    <string-array name="blood">
+        <item>A</item>
+        <item>B</item>
+        <item>O</item>
+        <item>AB</item>
+    </string-array>
+    <string-array name="religion">
+        <item>없음</item>
+        <item>기독교</item>
+        <item>천주교</item>
+        <item>불교</item>
+        <item>기타</item>
+
+    </string-array>
+    <string-array name="drink">
+        <item>마시지 않음</item>
+        <item>적당히 즐김</item>
+        <item>즐김</item>
     </string-array>
 </resources>
