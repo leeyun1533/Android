@@ -1,6 +1,8 @@
 package com.example.leeyun.stringting_android;
 
+import android.app.Application;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.util.Linkify;
@@ -11,7 +13,9 @@ import android.widget.TextView;
 
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -38,17 +42,73 @@ import com.kakao.usermgmt.response.model.UserProfile;
 import com.kakao.util.exception.KakaoException;
 import com.kakao.util.helper.log.Logger;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import okhttp3.ResponseBody;
+import retrofit2.http.GET;
+import retrofit2.http.Query;
+
+import static com.example.leeyun.stringting_android.R.id.Provision_Linkify;
+
+
 
 public class MainActivity extends AppCompatActivity {
     private LoginButton loginButton;
     private Button CustomloginButton;
     private CallbackManager callbackManager;
+
+    static String Email;
+
+    //rest api를 위한 변수선언
+    Retrofit retrofit;
+    Rest_ApiService apiService;
+
+    class Strings extends Application {
+
+        private String Facebook_email;
+
+        public String getState(){
+            return Facebook_email;
+        }
+        public void setState(String s){
+            Facebook_email = s;
+        }
+    }
+
+
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         FacebookSdk.sdkInitialize(getApplicationContext()); // SDK 초기화 (setContentView 보다 먼저 실행되어야합니다. 안그럼 에러납니다.)
         setContentView(R.layout.activity_main);
 
+        retrofit = new Retrofit.Builder().baseUrl(Rest_ApiService.API_URL).build();
+        apiService=retrofit.create(Rest_ApiService.class);
+
+
+        //Restrofit_test
+        Call<ResponseBody>comment =apiService.getComment(5);
+        comment.enqueue(new Callback<ResponseBody>() {
+
+            @Override
+            public void onResponse(Call <ResponseBody> call, Response<ResponseBody> response) {
+                try{
+                    Log.v("Test",response.body().string());
+                }catch (IOException e){
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onFailure(Call call, Throwable t) {
+
+            }
+        });
 
         TextView Provision_Linkify =(TextView)findViewById(R.id.Provision_Linkify);
 
@@ -89,6 +149,7 @@ public class MainActivity extends AppCompatActivity {
         //버튼에 바로 콜백을 등록하는 경우 LoginManager에 콜백을 등록하지 않아도됩니다.
         //반면에 커스텀으로 만든 버튼을 사용할 경우 아래보면 CustomloginButton OnClickListener안에 LoginManager를 이용해서
         //로그인 처리를 해주어야 합니다.
+
         loginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
             @Override
             public void onSuccess(LoginResult loginResult) { //로그인 성공시 호출되는 메소드
@@ -103,6 +164,9 @@ public class MainActivity extends AppCompatActivity {
                             public void onCompleted(JSONObject object, GraphResponse response) {
                                 try {
                                     Log.e("user profile", object.toString());
+
+                                    Email   = response.getJSONObject().getString("id").toString();
+                                    Log.e("email:",Email);
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                 }
@@ -152,6 +216,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -212,6 +277,10 @@ public class MainActivity extends AppCompatActivity {
                     //로그인에 성공하면 로그인한 사용자의 일련번호, 닉네임, 이미지url등을 리턴합니다.
                     //사용자 ID는 보안상의 문제로 제공하지 않고 일련번호는 제공합니다.
                     Log.e("UserProfile", userProfile.toString());
+                    String kakaoID = String.valueOf(userProfile.getId()); // userProfile에서 ID값을 가져옴
+                    String kakaoNickname = userProfile.getNickname();     // Nickname 값을 가져옴
+                    Log.e("KakaoId", kakaoID);
+
                     Intent intent = new Intent(MainActivity.this, SuccessActivity.class);
                     startActivity(intent);
                     finish();
@@ -220,12 +289,22 @@ public class MainActivity extends AppCompatActivity {
 
         }
 
+
         @Override
         public void onSessionOpenFailed(KakaoException exception) {
             // 세션 연결이 실패했을때
             // 어쩔때 실패되는지는 테스트를 안해보았음 ㅜㅜ
         }
     }
+    public interface Rest_ApiService {
+
+        public  static  final String API_URL="http://jsonplaceholder.typicode.com/";
+
+        @GET("comments")
+        Call<okhttp3.ResponseBody> getComment(@Query("postId")int postId);
+
+    }
+
 }
 
 
