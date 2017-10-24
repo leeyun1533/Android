@@ -23,7 +23,8 @@
                 android:padding="0sp"
                 android:paddingTop="20dp"
                 android:scaleType="centerCrop"
-                android:src="@drawable/backbtn" />
+                android:src="@drawable/backbtn"
+                android:onClick="onClick_back"/>
 
             <TextView
                 android:layout_width="wrap_content"
@@ -111,7 +112,7 @@
                         android:layout_width="75dp"
                         android:layout_height="75dp"
                         android:layout_weight="1"
-                        android:onClick="onClick2"
+                        android:onClick="onClick_imageUpload2"
                          />
 
                     <ImageView
@@ -119,7 +120,7 @@
                         android:layout_width="75dp"
                         android:layout_height="75dp"
                         android:layout_weight="1"
-                        android:onClick="onClick2"
+                        android:onClick="onClick_imageUpload3"
                         android:textSize="13dp" />
 
                     <ImageView
@@ -127,7 +128,7 @@
                         android:layout_width="75dp"
                         android:layout_height="75dp"
                         android:layout_weight="1"
-                        android:onClick="onClick"
+                        android:onClick="onClick_imageUpload4"
                         android:textSize="13dp" />
 
                     <ImageView
@@ -135,7 +136,7 @@
                         android:layout_width="75dp"
                         android:layout_height="75dp"
                         android:layout_weight="1"
-                        android:onClick="onClick"
+                        android:onClick="onClick_imageUpload5"
                         android:textSize="13dp" />
 
                     <ImageView
@@ -143,7 +144,7 @@
                         android:layout_width="75dp"
                         android:layout_height="75dp"
                         android:layout_weight="1"
-                        android:onClick="onClick"
+                        android:onClick="onClick_imageUpload6"
                         android:textSize="13dp" />
 
                 </LinearLayout>
@@ -166,7 +167,7 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentBottom="true"
                 android:layout_marginTop="10dp"
-                android:onClick="onClick_photo_upload"
+                android:onClick="onClick_ChatView"
                 android:text="다음"
                 android:textSize="20sp"
 
