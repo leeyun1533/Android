@@ -13,8 +13,11 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.app.Dialog;
 import android.content.DialogInterface;
@@ -30,7 +33,11 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.ImageView;
+import android.widget.Toast;
+
+import com.kakao.usermgmt.response.model.User;
 
 import java.io.File;
 
@@ -41,13 +48,19 @@ import java.io.File;
 
 import static android.app.Activity.RESULT_OK;
 import static com.example.leeyun.stringting_android.R.id.Email;
+import static com.example.leeyun.stringting_android.R.id.InputCarrea;
+import static com.example.leeyun.stringting_android.R.id.InputTall;
 import static com.example.leeyun.stringting_android.R.id.Spinner_age;
 import static com.example.leeyun.stringting_android.R.id.Spinner_blood;
 import static com.example.leeyun.stringting_android.R.id.Spinner_city;
 import static com.example.leeyun.stringting_android.R.id.Spinner_drink;
+import static com.example.leeyun.stringting_android.R.id.Spinner_education;
 import static com.example.leeyun.stringting_android.R.id.Spinner_religion;
+import static com.example.leeyun.stringting_android.R.id.radioButton;
+import static com.example.leeyun.stringting_android.R.id.radioButton1;
 import static com.example.leeyun.stringting_android.R.layout.spinner_item;
 import static com.facebook.FacebookSdk.getApplicationContext;
+import static java.lang.Integer.parseInt;
 
 /**
  * Created by leeyun on 2017. 9. 16..
@@ -59,6 +72,9 @@ public class Basicinfo_Edit extends AppCompatActivity implements View.OnClickLis
     private static final int CROP_FROM_IMAGE = 2;
     private Uri mImageCaptureUri;
     private ImageView iv_UserPhoto1, iv_UserPhoto2, iv_UserPhoto3, iv_UserPhoto4, iv_UserPhoto5, iv_UserPhoto6;
+    userinfo UserInfo =new userinfo();
+
+
 
     public void onClick_ChatView(View v) {
         Intent intent = new Intent(getApplicationContext(), ChatCustom.class);
@@ -66,8 +82,9 @@ public class Basicinfo_Edit extends AppCompatActivity implements View.OnClickLis
     }
 
     public void onClick_Basicinfo_upload(View v){               //basicinfo에서 불러온 정보들을 변수에 저장
-        EditText Check_email= (EditText)findViewById(Email);
+        RadioChecked_SpinnerCheck();
         Intent intent = new Intent(getApplicationContext(), ChatView.class);
+        intent.putExtra("UserInfo",UserInfo);
         startActivity(intent);
     }
 
@@ -75,7 +92,9 @@ public class Basicinfo_Edit extends AppCompatActivity implements View.OnClickLis
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.basicinfo_edit);
+        userinfo UserInfo =new userinfo();
 
+        userinfo_save();
 
         iv_UserPhoto1 = (ImageView) this.findViewById(R.id.photo1);
         iv_UserPhoto2 = (ImageView) this.findViewById(R.id.photo2);
@@ -85,23 +104,31 @@ public class Basicinfo_Edit extends AppCompatActivity implements View.OnClickLis
         iv_UserPhoto6 = (ImageView) this.findViewById(R.id.photo6);
 
 
-        Spinner age = (Spinner) findViewById(Spinner_age);
+        Spinner age = (Spinner) findViewById(Spinner_age);          //Spinner Setting
         Spinner city = (Spinner) findViewById(Spinner_city);
         Spinner blood = (Spinner) findViewById(Spinner_blood);
         Spinner drink = (Spinner) findViewById(Spinner_drink);
         Spinner religion = (Spinner) findViewById(Spinner_religion);
+        Spinner education = (Spinner) findViewById(Spinner_education);
+
 
         ArrayAdapter adapter = ArrayAdapter.createFromResource(this, R.array.age, spinner_item);
         ArrayAdapter adapter2 = ArrayAdapter.createFromResource(this, R.array.city, spinner_item);
         ArrayAdapter adapter3 = ArrayAdapter.createFromResource(this, R.array.blood, spinner_item);
         ArrayAdapter adapter4 = ArrayAdapter.createFromResource(this, R.array.drink, spinner_item);
         ArrayAdapter adapter5 = ArrayAdapter.createFromResource(this, R.array.religion, spinner_item);
+        ArrayAdapter adapter6 = ArrayAdapter.createFromResource(this, R.array.education, spinner_item);
+
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         age.setAdapter(adapter);
         city.setAdapter(adapter2);
         blood.setAdapter(adapter3);
         drink.setAdapter(adapter4);
         religion.setAdapter(adapter5);
+        education.setAdapter(adapter6);
+
+        RadioChecked_SpinnerCheck();   //RadioCehcked&&SpinnerCheck 값 받아오는 class
+
 
 
     }
@@ -335,4 +362,220 @@ public class Basicinfo_Edit extends AppCompatActivity implements View.OnClickLis
 
         }
     }
+    public void userinfo_save(){
+
+        final Intent i =getIntent();                      // facebook 또는 kakao의 아이디, 메신저타입을 받아와 변수에 저장
+        String id=i.getExtras().getString("ID");
+        char Setting_id=i.getExtras().getChar("setid");
+        Log.e("Test", id);
+        Log.e("Test1", String.valueOf(Setting_id));
+        UserInfo.Id=id;
+        UserInfo.login_format=Setting_id;
+        Log.e("Test3",UserInfo.Id);                     //LOG.e는 테스트코드
+
+
+
+
+
+    }
+        // RadioButton을  checked 하는 함수
+    public void RadioChecked_SpinnerCheck(){
+        final RadioButton RadioMan_checked = (RadioButton) findViewById(R.id.RadioMan);
+        final RadioButton RadioWomen_checked= (RadioButton)findViewById(R.id.RadioWoman);
+        final RadioButton RadioArmy_Complete_checked= (RadioButton)findViewById(R.id.RadioArmy_Complete);
+        final RadioButton RadioArmy_InComplete_checked= (RadioButton)findViewById(R.id.RadioArmy_InComplete);
+        final RadioButton RadioArmy_Notduty_checked= (RadioButton)findViewById(R.id.RadioArmy_Notduty);
+        final RadioButton Radio_smoking= (RadioButton)findViewById(R.id.Radio_smokingO);
+        final RadioButton Radio_Notsmoking= (RadioButton)findViewById(R.id.RadioNot_smoking);
+
+        final Spinner spinnerAge = (Spinner)findViewById(R.id.Spinner_age);
+        final Spinner spinnerCity = (Spinner)findViewById(R.id.Spinner_city);
+        final Spinner spinnerBlood = (Spinner)findViewById(R.id.Spinner_blood);
+        final Spinner spinnerDrink=(Spinner)findViewById(R.id.Spinner_drink);
+        final Spinner spinnerReligion=(Spinner)findViewById(R.id.Spinner_religion);
+        final Spinner spinnerEducation=(Spinner)findViewById(R.id.Spinner_education);
+
+
+        RadioMan_checked.setOnClickListener(new RadioButton.OnClickListener(){
+            public void onClick(View v) {
+                if (RadioMan_checked.isChecked()) {
+                    Log.e("성별.", "남자");
+
+                }
+
+            }
+        });
+        RadioWomen_checked.setOnClickListener(new RadioButton.OnClickListener(){
+            public void onClick(View v) {
+                if (RadioMan_checked.isChecked()) {
+                    Log.e("성별.", "여자");
+                }
+
+            }
+        });
+
+        RadioArmy_Complete_checked.setOnClickListener(new RadioButton.OnClickListener(){
+            public void onClick(View v) {
+                if (RadioArmy_Complete_checked.isChecked()) {
+                    Log.e("병역.", "병역필");
+                    UserInfo.military_service_status="Army_complete";
+                }
+
+            }
+        });
+
+        RadioArmy_InComplete_checked.setOnClickListener(new RadioButton.OnClickListener(){
+            public void onClick(View v) {
+                if (RadioArmy_InComplete_checked.isChecked()) {
+
+                    Log.e("병역.", "미필");
+                    UserInfo.military_service_status="Army_Incomplete";
+
+                }
+
+            }
+        });
+        RadioArmy_Notduty_checked.setOnClickListener(new RadioButton.OnClickListener(){
+            public void onClick(View v) {
+                if (RadioArmy_Notduty_checked.isChecked()) {
+                    Log.e("병역.", "해당없음");
+                    UserInfo.military_service_status="Army_Notduty";
+
+                }
+
+            }
+        });
+        Radio_smoking.setOnClickListener(new RadioButton.OnClickListener(){
+            public void onClick(View v) {
+                if (Radio_smoking.isChecked()) {
+                    Log.e("흡연.", "흡연");
+                    UserInfo.smoke=true;
+
+                }
+
+            }
+        });
+        Radio_Notsmoking.setOnClickListener(new RadioButton.OnClickListener(){
+            public void onClick(View v) {
+                if (Radio_Notsmoking.isChecked()) {
+                    Log.e("흡연.", "비흡연");
+                    UserInfo.smoke=false;
+                }
+
+            }
+        });
+
+        spinnerAge.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                Log.e("age", (String) spinnerAge.getItemAtPosition(position));
+                UserInfo.age= Integer.parseInt(spinnerAge.getItemAtPosition(position).toString());
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+        spinnerCity.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                Log.e("City", (String) spinnerCity.getItemAtPosition(position));
+                UserInfo.location=spinnerCity.getItemAtPosition(position).toString();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+        spinnerBlood.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                Log.e("Blood", (String) spinnerBlood.getItemAtPosition(position));
+                UserInfo.blood_type=spinnerBlood.getItemAtPosition(position).toString();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+        spinnerDrink.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                Log.e("Drink", (String) spinnerDrink.getItemAtPosition(position));
+                UserInfo.drink=spinnerDrink.getItemAtPosition(position).toString();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+        spinnerReligion.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                Log.e("Religion", (String) spinnerReligion.getItemAtPosition(position));
+                String CheckSpinnerReligion=(String)spinnerReligion.getItemAtPosition(position);
+                Character InputUserinfoReligion;
+
+                if("기독교".equals(CheckSpinnerReligion)){
+                    InputUserinfoReligion='P';
+                }
+                else if("불교".equals(CheckSpinnerReligion)){
+                    InputUserinfoReligion='B';
+                }
+                else if("가톨릭".equals(CheckSpinnerReligion)){
+                    InputUserinfoReligion='C';
+                }
+                else if("이슬람".equals(CheckSpinnerReligion)){
+                    InputUserinfoReligion='I';
+
+                }
+                else if("없음".equals(CheckSpinnerReligion)){
+                    InputUserinfoReligion='N';
+                }
+                else{
+                    InputUserinfoReligion='O';
+                }
+                UserInfo.religion=InputUserinfoReligion;
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+        spinnerEducation.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                Log.e("education", (String) spinnerEducation.getItemAtPosition(position));
+                UserInfo.education=spinnerEducation.getItemAtPosition(position).toString();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+        EditText InputCareea=(EditText)findViewById(R.id.InputCarrea);
+        String Check_InputCareea=InputCareea.getText().toString();
+        UserInfo.department=Check_InputCareea;
+
+        EditText InputTall=(EditText)findViewById(R.id.InputTall);
+        String Check_InputTall=InputTall.getText().toString();
+        try{
+            UserInfo.hegiht= Integer.parseInt(Check_InputTall.toString());
+
+        }catch(NumberFormatException nfe){
+            Log.e("error","error");
+        }
+
+
+    }
+
 }
