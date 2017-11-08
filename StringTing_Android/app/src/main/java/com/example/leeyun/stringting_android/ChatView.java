@@ -12,21 +12,16 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 
+import com.example.leeyun.stringting_android.API.ResponseApi;
+import com.example.leeyun.stringting_android.API.Rest_ApiService;
+import com.example.leeyun.stringting_android.API.userinfo;
 import com.google.gson.Gson;
-import com.kakao.usermgmt.response.model.User;
 
-import java.io.IOException;
-
-import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
-import retrofit2.http.Field;
-import retrofit2.http.FormUrlEncoded;
-import retrofit2.http.GET;
-import retrofit2.http.POST;
-import retrofit2.http.Query;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ChatView extends Activity {
     ListView m_ListView;
@@ -39,32 +34,44 @@ public class ChatView extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat_view);
 
-        userinfo Userinfo = (userinfo)getIntent().getSerializableExtra("UserInfo");
-
-        Log.e("Blood_TYPE",Userinfo.blood_type);
-        Log.e("Department",Userinfo.department);
+        final userinfo Userinfo = (userinfo)getIntent().getSerializableExtra("UserInfo");
+        ResponseApi responapi =new ResponseApi();
+        responapi.setEmail(Userinfo.Id);
 
         final String Userinfo_Json= new Gson().toJson(Userinfo);
-        Log.e("TestGson",Userinfo_Json);
+        final String EmailCheck_Json= new Gson().toJson(responapi.getEmail());
+        Log.e("TestUserinfoGson",Userinfo_Json);            //userinfo정보를 json타입으로 변환
+        Log.e("TestEmailGson",EmailCheck_Json);
 
-
-        retrofit = new Retrofit.Builder().baseUrl(Rest_ApiService.API_URL).build();
+        retrofit = new Retrofit.Builder().baseUrl(Rest_ApiService.API_URL).addConverterFactory(GsonConverterFactory.create()).build();
         apiService= retrofit.create(Rest_ApiService.class);
 
 
-        Call<ResponseBody> comment = apiService.getPostCommentStr(Userinfo_Json);
-        comment.enqueue(new Callback<ResponseBody>() {
+        Call<ResponseApi> comment = apiService.getPostEmailStr1(responapi);
+        comment.enqueue(new Callback<ResponseApi>() {
             @Override
-            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-               try {
-                   Log.e("OnResponse", Userinfo_Json);
-               }catch (NumberFormatException nfe){
-                   Log.e("onFailure","dd");
-               }
+            public void onResponse(Call<ResponseApi> call, Response<ResponseApi> response) {
+
+
+                    ResponseApi gsonresponse=response.body();
+                    Log.v("onresponse", gsonresponse.getResult());
+                    Log.v("onresponse",gsonresponse.getMessage());
+                    Log.v("onresponse", String.valueOf(response.code()));
+
+                    if("success".equals(gsonresponse.getResult())){
+                        Log.v("onresponse", "success");
+
+                    }
+                    else{
+                        Log.v("onresponse","fail");
+                    }
+
+
+
             }
 
             @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) {
+            public void onFailure(Call<ResponseApi> call, Throwable t) {
                 Log.d("sam", "fail");
             }
         });
@@ -120,9 +127,9 @@ public class ChatView extends Activity {
 
                     //버튼 바뀌는거
                     LinearLayout ll = (LinearLayout)findViewById(R.id.enter_chatting);
-                    ll.setVisibility(android.view.View.INVISIBLE);
+                    ll.setVisibility(View.INVISIBLE);
                     Button btn =(Button) findViewById(R.id.next_btn);
-                    btn.setVisibility(android.view.View.VISIBLE);
+                    btn.setVisibility(View.VISIBLE);
 
                 }
             }
@@ -153,17 +160,6 @@ public class ChatView extends Activity {
     }
 
 
-    public interface Rest_ApiService {
 
-        public  static  final String API_URL="http://115.68.226.54:3825/information/";
-
-        @GET("/")
-        Call<ResponseBody> getComment(@Query("postId")int testid);
-
-        @FormUrlEncoded
-        @POST("join")
-        Call<ResponseBody>getPostCommentStr(@Field("PostJSON2") String UserinfoJson);
-
-    }
 
 }
