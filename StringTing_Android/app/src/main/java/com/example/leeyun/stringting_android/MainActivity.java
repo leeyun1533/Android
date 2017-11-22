@@ -1,16 +1,15 @@
 package com.example.leeyun.stringting_android;
 
+import android.Manifest;
 import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.util.Linkify;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -18,14 +17,13 @@ import android.widget.Toast;
 
 import org.json.JSONObject;
 
-import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
-import com.facebook.AccessToken;
+import com.example.leeyun.stringting_android.API.MyFirebaseInstanceIDService;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
@@ -37,31 +35,19 @@ import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
 
 
+import com.gun0912.tedpermission.PermissionListener;
+import com.gun0912.tedpermission.TedPermission;
 import com.kakao.auth.ErrorCode;
 import com.kakao.auth.ISessionCallback;
 import com.kakao.auth.Session;
 import com.kakao.network.ErrorResult;
 import com.kakao.usermgmt.UserManagement;
-import com.kakao.usermgmt.callback.LogoutResponseCallback;
 import com.kakao.usermgmt.callback.MeResponseCallback;
 import com.kakao.usermgmt.response.model.UserProfile;
 import com.kakao.util.exception.KakaoException;
 import com.kakao.util.helper.log.Logger;
 
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-import retrofit2.Retrofit;
-import okhttp3.ResponseBody;
-import retrofit2.http.Field;
-import retrofit2.http.FormUrlEncoded;
-import retrofit2.http.GET;
-import retrofit2.http.POST;
-import retrofit2.http.Query;
-
-import static com.example.leeyun.stringting_android.R.id.Provision_Linkify;
-import static com.google.zxing.qrcode.decoder.ErrorCorrectionLevel.Q;
-import static com.kakao.auth.StringSet.error;
+import io.realm.Realm;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -98,9 +84,7 @@ public class MainActivity extends AppCompatActivity {
         FacebookSdk.sdkInitialize(getApplicationContext()); // SDK 초기화 (setContentView 보다 먼저 실행되어야합니다. 안그럼 에러납니다.)
         setContentView(R.layout.activity_main);
 
-
         //Restrofit_test
-
 
         TextView Provision_Linkify = (TextView) findViewById(R.id.Provision_Linkify);
 
@@ -129,7 +113,33 @@ public class MainActivity extends AppCompatActivity {
         Session.getCurrentSession().addCallback(callback);
 
 
-        
+        //runtime permission
+        PermissionListener permissionListener= new PermissionListener() {
+            @Override
+            public void onPermissionGranted() {
+                Toast.makeText(MainActivity.this,"권한허가",Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onPermissionDenied(ArrayList<String> deniedPermissions) {
+                Toast.makeText(MainActivity.this,"권한거부\n"+ deniedPermissions.toString(),Toast.LENGTH_SHORT).show();
+
+            }
+
+        };
+        TedPermission.with(this)
+                .setPermissionListener(permissionListener)
+                .setRationaleMessage("사진에 접근하기위해서는 사진 접근 권한이 필요해요")
+                .setDeniedMessage("접근을 거부 하셨군요 \n [설정]->[권한]에서 권한을 허용할 수 있어요.")
+                .setPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                .check();
+
+
+
+        //fcm token
+        MyFirebaseInstanceIDService myFirebaseInstanceIDService =new MyFirebaseInstanceIDService();
+        myFirebaseInstanceIDService.onTokenRefresh();
+
     }
     public void facebookLoginOnclick(View v){
         FacebookSdk.sdkInitialize(getApplicationContext());
@@ -157,6 +167,7 @@ public class MainActivity extends AppCompatActivity {
                             Intent intent = new Intent(MainActivity.this,  Basicinfo_Edit.class);
                             intent.putExtra("ID",Email);
                             intent.putExtra("setid",'F');
+
                             startActivity(intent);
                             finish();}
                             catch (Exception e){
@@ -206,7 +217,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
     public void onClick_login_firstpage(View v){
-        Intent exintent = new Intent(getApplicationContext(),Login_firstpage.class);
+        Intent exintent = new Intent(getApplicationContext(),Preexistence_Login.class);
 
         startActivity(exintent);
 
@@ -214,7 +225,7 @@ public class MainActivity extends AppCompatActivity {
 
     
 
-    private class SessionCallback implements ISessionCallback {
+    public class SessionCallback implements ISessionCallback {
 
         @Override
         public void onSessionOpened() {

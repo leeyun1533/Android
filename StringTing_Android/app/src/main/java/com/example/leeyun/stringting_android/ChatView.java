@@ -3,78 +3,58 @@ package com.example.leeyun.stringting_android;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.Toast;
 
-import com.example.leeyun.stringting_android.API.ResponseApi;
-import com.example.leeyun.stringting_android.API.Rest_ApiService;
 import com.example.leeyun.stringting_android.API.userinfo;
 import com.google.gson.Gson;
 
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
+import java.util.ArrayList;
 
-public class ChatView extends Activity {
+public class ChatView extends Activity implements AdapterView.OnItemClickListener {
     ListView m_ListView;
     ChatCustom m_Adapter;
-    Retrofit retrofit;
-    Rest_ApiService apiService;
+    userinfo Userinfo = new userinfo();
 
+    static  int position;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat_view);
 
-        final userinfo Userinfo = (userinfo)getIntent().getSerializableExtra("UserInfo");
-        ResponseApi responapi =new ResponseApi();
-        responapi.setEmail(Userinfo.Id);
+        Intent intent=getIntent();
+
+        ArrayList<String> Imageupload_countList=new ArrayList<>();
+
+        Imageupload_countList=intent.getExtras().getStringArrayList("ProfileFilepate");
+
+        for (int i=0;i<Imageupload_countList.size();i++){
+            Log.v("Imagefilepath",Imageupload_countList.get(i));
+        }
+        Userinfo = (userinfo)getIntent().getSerializableExtra("UserInfo");
 
         final String Userinfo_Json= new Gson().toJson(Userinfo);
-        final String EmailCheck_Json= new Gson().toJson(responapi.getEmail());
         Log.e("TestUserinfoGson",Userinfo_Json);            //userinfo정보를 json타입으로 변환
-        Log.e("TestEmailGson",EmailCheck_Json);
 
-        retrofit = new Retrofit.Builder().baseUrl(Rest_ApiService.API_URL).addConverterFactory(GsonConverterFactory.create()).build();
-        apiService= retrofit.create(Rest_ApiService.class);
+        savePreferences(Userinfo.getEmail());
 
-
-        Call<ResponseApi> comment = apiService.getPostEmailStr1(responapi);
-        comment.enqueue(new Callback<ResponseApi>() {
-            @Override
-            public void onResponse(Call<ResponseApi> call, Response<ResponseApi> response) {
-
-
-                    ResponseApi gsonresponse=response.body();
-                    Log.v("onresponse", gsonresponse.getResult());
-                    Log.v("onresponse",gsonresponse.getMessage());
-                    Log.v("onresponse", String.valueOf(response.code()));
-
-                    if("success".equals(gsonresponse.getResult())){
-                        Log.v("onresponse", "success");
-
-                    }
-                    else{
-                        Log.v("onresponse","fail");
-                    }
+        SharedPreferences example= getSharedPreferences("Local_DB", MODE_PRIVATE);
+        String str = example.getString("Id", "");
+        Log.e("localdbtest",str);
 
 
 
-            }
 
-            @Override
-            public void onFailure(Call<ResponseApi> call, Throwable t) {
-                Log.d("sam", "fail");
-            }
-        });
+
 
 
         // 커스텀 어댑터 생성
@@ -92,18 +72,6 @@ public class ChatView extends Activity {
                 "제가 하는 질문을 이상형인 사람이 질문한다고생각해주시고 정성스럽게 답장해주세요!", 0);
 
 
-
-        /*요기가 우리가 띄울거
-        findViewById(R.id.send_btn).setOnClickListener(new Button.OnClickListener() {
-            @Override
-            public void onClick(android.view.View v) {
-                EditText editText = (EditText) findViewById(R.id.input_text);
-                String inputValue = editText.getText().toString();
-                editText.setText("");
-                refresh(inputValue, 0);
-            }
-        }
-        );*/
 
 
 
@@ -135,7 +103,37 @@ public class ChatView extends Activity {
             }
         }
         );
+        //수정 버튼을 클릭하면 edittext를 받아서 listview에 세팅해줌
+        findViewById(R.id.modify_sendbtn).setOnClickListener(new Button.OnClickListener() {
+            int i=1;
+            @Override
+            public void onClick(View v) {
+
+                EditText editText =(EditText)findViewById(R.id.modify_Edit);
+                editText.requestFocus();
+                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.toggleSoftInput(InputMethodManager.SHOW_FORCED,InputMethodManager.HIDE_IMPLICIT_ONLY);
+                Toast.makeText(getApplicationContext(), "modify_send", Toast.LENGTH_LONG).show();
+                String modifyString = editText.getText().toString();
+                Log.v("modifyString",modifyString);
+
+                m_Adapter.getM_List().set(position, new ChatCustom.ListContents(modifyString,position));
+                m_Adapter.notifyDataSetChanged();
+
+                LinearLayout l2 = (LinearLayout)findViewById(R.id.enter_chatting_visible);
+                l2.setVisibility(View.GONE);
+                LinearLayout ll = (LinearLayout)findViewById(R.id.enter_chatting);
+                ll.setVisibility(View.VISIBLE);
+
+
+               }
+            }
+        );
+
+
     }
+
+
 
 
     private void refresh (String inputValue, int _str) {
@@ -156,10 +154,54 @@ public class ChatView extends Activity {
 
     public void onClick_TabbedBar(View v){               //basicinfo에서 불러온 정보들을 변수에 저장
         Intent intent = new Intent(getApplicationContext(), TabbedBar.class);
+        intent.putExtra("Userinfo",Userinfo);
         startActivity(intent);
+    }
+
+    // 값 저장하기
+        public void savePreferences(String data){
+        SharedPreferences pref = getSharedPreferences("Local_DB", MODE_PRIVATE);
+        SharedPreferences.Editor editor = pref.edit();
+        editor.putString("Id",data);
+        editor.commit();
     }
 
 
 
+    //수정하기 버튼을 눌렀을때 position을 받아옴, 전송버튼을 수정버튼으로 바꿔줌
+    public void modify(View view) {
 
+        LinearLayout ll = (LinearLayout)findViewById(R.id.enter_chatting);
+        ll.setVisibility(View.GONE);
+        LinearLayout l2 = (LinearLayout)findViewById(R.id.enter_chatting_visible);
+        l2.setVisibility(View.VISIBLE);
+
+        Toast.makeText(getApplicationContext(), "OK", Toast.LENGTH_LONG).show();
+        EditText editText =(EditText)findViewById(R.id.input_text);
+        editText.requestFocus();
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.toggleSoftInput(InputMethodManager.SHOW_FORCED,InputMethodManager.HIDE_IMPLICIT_ONLY);
+
+
+        String modifyString = editText.getText().toString();
+        Log.v("modifyString",modifyString);
+
+        int count,checked;
+        count=m_Adapter.getCount();
+        Log.v("count", String.valueOf(count));
+        if(count>0){
+
+            position=m_ListView.getPositionForView(view);
+
+            Log.v("checked", String.valueOf(position));
+        }
+
+    }
+
+
+
+    @Override
+    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+
+    }
 }

@@ -2,6 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.leeyun.stringting_android">
     <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+
     <application
         android:name=".API.App"
          android:allowBackup="true"
@@ -20,7 +23,7 @@
 
         </activity>
         <activity android:name=".Membership_form" ></activity>
-        <activity android:name=".Login_firstpage"/>
+        <activity android:name=".Preexistence_Login"/>
         <activity android:name=".Login_local"/>
         <activity android:name=".Basicinfo_Edit"
             android:windowSoftInputMode="stateAlwaysHidden"/>
@@ -33,7 +36,21 @@
         <activity android:name=".TabbedBar"/>
         <meta-data android:name="com.facebook.sdk.ApplicationId" android:value="@string/facebook_app_id" />
 
+
+        <service
+            android:name=".API.MyFirebaseMessagingService">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT"/>
+            </intent-filter>
+        </service>
+        <service
+            android:name=".API.MyFirebaseInstanceIDService">
+            <intent-filter>
+                <action android:name="com.google.firebase.INSTANCE_ID_EVENT"/>
+            </intent-filter>
+        </service>
         
     </application>
+
 
 </manifest>
